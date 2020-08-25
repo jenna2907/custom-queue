@@ -1,0 +1,8 @@
+name = Custom Queue Mail
+core = 7.x
+description = Custom Queue Mail
+package = Custom
+version = "7.x"
+project = "custom_queue_mail"
+datestamp = "1499717344"
+

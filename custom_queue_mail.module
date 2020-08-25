@@ -1,0 +1,81 @@
+<?php
+
+/**
+ * Implements hook_advanced_queue_info().
+ */
+function custom_queue_mail_advanced_queue_info() {
+  $items['custom_queue'] = array(
+    'label' => t('Custom queue'),
+    'worker callback' => 'custom_queue_worker',
+    'retry after' => 10,
+    'max attempts' => 5,
+    'lease time' => 45,
+  );
+  return $items;
+}
+
+/**
+ Callback function for advance queue 
+ */
+function custom_queue_worker($item, $end_time = FALSE) {
+
+  $users = entity_load('user');
+  foreach($users as $userdata){
+
+  $to = $userdata->mail;
+  $params = array(
+    'body' => $body,
+     'subject' => 'Trigger the user for message queue',
+  );
+  if (drupal_mail('custom_queue_mail', 'queue_mails', $to, language_default(), $params)) {
+        $message['send'] = 1;    
+    } else {
+         $message['send'] = 0;
+    }
+ 
+}
+  return $message;
+}
+
+
+
+/**
+ * Implements hook_init().
+ *
+ */
+function custom_queue_mail_init() {
+ $queue = DrupalQueue::get('custom_queue', TRUE);
+  $users = entity_load('user');
+
+foreach ($users as $row) {
+   $message_queue = message_create('message_queue', array(), $row);
+  
+  $wrapper = entity_metadata_wrapper('message', $message_queue);
+ // $wrapper->field_published->set($row->status);
+  $wrapper->save(); 
+   if($row->uid!=0){
+   // $queue->createItem($row->mail);
+  }
+  }
+
+return array(
+    'status' => ADVANCEDQUEUE_STATUS_SUCCESS,
+    'result' => 'Processed ',
+  );
+  
+}
+
+
+
+
+
+/**
+ * Implements hook_mail().
+ *
+ */
+
+function custom_queue_mail_mail($key, &$message, $params) {
+  $message['subject'] = $params['subject'];
+  $message['body'] = $params['body'];
+}
+
